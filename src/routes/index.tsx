@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
+import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
