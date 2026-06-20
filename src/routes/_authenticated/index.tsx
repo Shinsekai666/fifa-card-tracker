@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { FileDown, LayoutGrid, List, Loader2, Search, Sparkles, Upload, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileDown, LayoutGrid, List, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import { fetchAllStickers, useStickerMutations } from "@/lib/sticker-hooks";
 import { groupByTeam, STATUS_LABEL, type Sticker, type StickerStatus } from "@/lib/sticker-types";
@@ -18,7 +19,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
 import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Mon Classeur Panini FIFA 2026" },
@@ -111,6 +112,7 @@ function Home() {
           <Button variant="outline" onClick={() => exportDoublesPdf(stickers)} disabled={!stats.doublesTotal}>
             <FileDown className="mr-2 h-4 w-4" /> PDF doubles
           </Button>
+          <LogoutButton />
         </div>
       </header>
 
@@ -342,5 +344,21 @@ function DangerZone() {
     <button onClick={wipe} className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
       <Trash2 className="h-3 w-3" /> Vider l'album
     </button>
+  );
+}
+
+function LogoutButton() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  async function logout() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+  return (
+    <Button variant="ghost" size="sm" onClick={logout} title="Se déconnecter">
+      <LogOut className="h-4 w-4" />
+    </Button>
   );
 }
