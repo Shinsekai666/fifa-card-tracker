@@ -20,10 +20,17 @@ export type Database = {
           created_at: string
           doubles_count: number
           id: string
+          is_foil: boolean
+          is_special: boolean
           name: string | null
           number: string
+          position: number
           sort_order: number
           status: string
+          team_code: string | null
+          team_flag: string | null
+          team_name: string | null
+          team_order: number
           updated_at: string
         }
         Insert: {
@@ -31,10 +38,17 @@ export type Database = {
           created_at?: string
           doubles_count?: number
           id?: string
+          is_foil?: boolean
+          is_special?: boolean
           name?: string | null
           number: string
+          position?: number
           sort_order?: number
           status?: string
+          team_code?: string | null
+          team_flag?: string | null
+          team_name?: string | null
+          team_order?: number
           updated_at?: string
         }
         Update: {
@@ -42,10 +56,17 @@ export type Database = {
           created_at?: string
           doubles_count?: number
           id?: string
+          is_foil?: boolean
+          is_special?: boolean
           name?: string | null
           number?: string
+          position?: number
           sort_order?: number
           status?: string
+          team_code?: string | null
+          team_flag?: string | null
+          team_name?: string | null
+          team_order?: number
           updated_at?: string
         }
         Relationships: []
