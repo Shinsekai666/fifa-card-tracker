@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { StickerSlot } from "./sticker-slot";
+import { TeamAlbumSpread } from "./team-album-spread";
 import { useStickerMutations } from "@/lib/sticker-hooks";
 import type { TeamGroup } from "@/lib/sticker-types";
 
