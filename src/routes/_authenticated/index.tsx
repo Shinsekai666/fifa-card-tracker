@@ -18,7 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
 import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Mon Classeur Panini FIFA 2026" },
