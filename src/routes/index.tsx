@@ -155,7 +155,7 @@ function Album() {
             }}
           />
           <Button variant="outline" onClick={() => fileRef.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Importer CSV
+            <Upload className="mr-2 h-4 w-4" /> Importer CSV/JSON
           </Button>
           <Button variant="outline" onClick={() => exportMissingPdf(stickers)} disabled={!stats.missing}>
             <FileDown className="mr-2 h-4 w-4" /> PDF manquants
@@ -351,7 +351,7 @@ function EmptyState({ onAdd, onImport }: { onAdd: () => void; onImport: () => vo
         <code className="ml-1 rounded bg-muted px-1">category</code>) ou ajoute-les un par un.
       </p>
       <div className="mt-4 flex gap-2">
-        <Button onClick={onImport}><Upload className="mr-2 h-4 w-4" /> Importer CSV</Button>
+        <Button onClick={onImport}><Upload className="mr-2 h-4 w-4" /> Importer CSV/JSON</Button>
         <Button variant="outline" onClick={onAdd}><Plus className="mr-2 h-4 w-4" /> Ajouter un sticker</Button>
       </div>
     </div>
