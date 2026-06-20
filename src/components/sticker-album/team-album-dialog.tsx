@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { StickerSlot } from "./sticker-slot";
+import { TeamAlbumSpread } from "./team-album-spread";
 import { useStickerMutations } from "@/lib/sticker-hooks";
 import type { TeamGroup } from "@/lib/sticker-types";
 
@@ -96,18 +97,27 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
             </div>
 
             {/* Grille style page d'album */}
-            <div className="bg-muted/30 p-4 md:p-6">
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 md:gap-4">
-                {gridStickers.map((s) => (
-                  <StickerSlot
-                    key={s.id}
-                    sticker={s}
-                    onCycle={() => cycle(s)}
-                    onAdjust={(d) => adjustDoubles(s, d)}
-                  />
-                ))}
+            {team.isSpecial ? (
+              <div className="bg-muted/30 p-4 md:p-6">
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 md:gap-4">
+                  {gridStickers.map((s) => (
+                    <StickerSlot
+                      key={s.id}
+                      sticker={s}
+                      onCycle={() => cycle(s)}
+                      onAdjust={(d) => adjustDoubles(s, d)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <TeamAlbumSpread
+                team={team}
+                stickers={gridStickers}
+                onCycle={(s) => cycle(s)}
+                onAdjust={(s, d) => adjustDoubles(s, d)}
+              />
+            )}
 
             {/* Navigation entre équipes */}
             <div className="flex items-center justify-between gap-2 border-t border-border bg-background p-3">
