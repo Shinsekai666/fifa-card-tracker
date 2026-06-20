@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileDown, LayoutGrid, List, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
+import { FileDown, LayoutGrid, List, ListChecks, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
