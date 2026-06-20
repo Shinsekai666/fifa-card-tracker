@@ -1,15 +1,14 @@
-import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import type { TeamGroup } from "@/lib/sticker-types";
 
-export function TeamCard({ group }: { group: TeamGroup }) {
+export function TeamCard({ group, onClick }: { group: TeamGroup; onClick: () => void }) {
   const complete = group.pct === 100;
   return (
-    <Link
-      to="/team/$teamCode"
-      params={{ teamCode: group.code }}
+    <button
+      type="button"
+      onClick={onClick}
       className={[
-        "group relative flex flex-col rounded-xl border-2 bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg",
+        "group relative flex flex-col rounded-xl border-2 bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg",
         complete ? "border-accent bg-gradient-to-br from-accent/15 to-transparent" : "border-border hover:border-primary/40",
         group.isSpecial ? "ring-2 ring-accent/40" : "",
       ].join(" ")}
@@ -51,6 +50,6 @@ export function TeamCard({ group }: { group: TeamGroup }) {
           {group.doubles} double{group.doubles > 1 ? "s" : ""} à échanger
         </p>
       )}
-    </Link>
+    </button>
   );
 }
