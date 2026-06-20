@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Sticker, StickerStatus } from "@/lib/sticker-types";
 import { STATUS_LABEL } from "@/lib/sticker-types";
 import { exportDoublesPdf, exportMissingPdf } from "@/lib/sticker-pdf";
-import { importStickersFromCsv } from "@/lib/sticker-import";
+import { importStickersFromFile } from "@/lib/sticker-import";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,7 +123,7 @@ function Album() {
 
   async function handleImport(file: File) {
     try {
-      const res = await importStickersFromCsv(file);
+      const res = await importStickersFromFile(file);
       toast.success(`${res.inserted} stickers importés / mis à jour`);
       qc.invalidateQueries({ queryKey: ["stickers"] });
     } catch (e) {
@@ -146,7 +146,7 @@ function Album() {
           <input
             ref={fileRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.json,text/csv,application/json"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
