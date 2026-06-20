@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileDown, LayoutGrid, List, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
+import { FileDown, LayoutGrid, List, ListChecks, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/")({
   component: HomePage,
 });
 
-type ViewMode = "album" | "list";
+type ViewMode = "album" | "list" | "missing";
 
 function HomePage() {
   return (
@@ -128,11 +128,18 @@ function Home() {
       {/* View toggle */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">
-          {view === "album" ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}` : "Liste complète"}
+          {view === "album"
+            ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}`
+            : view === "missing"
+            ? `${stats.missing} manquant${stats.missing > 1 ? "s" : ""}`
+            : "Liste complète"}
         </h2>
         <div className="inline-flex rounded-lg border border-border bg-card p-1">
           <ViewBtn active={view === "album"} onClick={() => setView("album")} icon={<LayoutGrid className="h-4 w-4" />}>
             Album
+          </ViewBtn>
+          <ViewBtn active={view === "missing"} onClick={() => setView("missing")} icon={<ListChecks className="h-4 w-4" />}>
+            Manquants
           </ViewBtn>
           <ViewBtn active={view === "list"} onClick={() => setView("list")} icon={<List className="h-4 w-4" />}>
             Liste
@@ -147,6 +154,8 @@ function Home() {
         <EmptyState onImport={() => fileRef.current?.click()} />
       ) : view === "album" ? (
         <AlbumView teams={teams} onSelect={setSelectedTeam} />
+      ) : view === "missing" ? (
+        <MissingView teams={teams} onSelectTeam={setSelectedTeam} />
       ) : (
         <ListView stickers={stickers} />
       )}
@@ -164,6 +173,68 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {teams.map((t) => <TeamCard key={t.code} group={t} onClick={() => onSelect(t.code)} />)}
+    </div>
+  );
+}
+
+function MissingView({
+  teams,
+  onSelectTeam,
+}: {
+  teams: ReturnType<typeof groupByTeam>;
+  onSelectTeam: (code: string) => void;
+}) {
+  const groups = useMemo(
+    () =>
+      teams
+        .map((t) => ({ ...t, missing: t.stickers.filter((s) => s.status === "missing") }))
+        .filter((t) => t.missing.length > 0),
+    [teams],
+  );
+
+  if (groups.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card py-16 text-center">
+        <div className="mb-2 text-4xl">🎉</div>
+        <p className="text-lg font-bold">Aucun sticker manquant !</p>
+        <p className="mt-1 text-sm text-muted-foreground">Ton album est complet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {groups.map((t) => (
+        <Card key={t.code}>
+          <CardContent className="p-4">
+            <button
+              onClick={() => onSelectTeam(t.code)}
+              className="mb-3 flex w-full items-center gap-2 text-left hover:opacity-80"
+            >
+              <span className="text-2xl">{t.flag}</span>
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-bold text-foreground">{t.name}</h3>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{t.code}</p>
+              </div>
+              <Badge variant="outline" className="font-mono">
+                {t.missing.length} / {t.total}
+              </Badge>
+            </button>
+            <div className="flex flex-wrap gap-1.5">
+              {t.missing.map((s) => (
+                <span
+                  key={s.id}
+                  title={s.name ?? ""}
+                  className="inline-flex items-center gap-1 rounded-md border border-dashed border-border bg-muted/40 px-2 py-1 font-mono text-xs font-bold text-foreground"
+                >
+                  {s.number}
+                  {s.is_foil && <Sparkles className="h-3 w-3 text-accent" />}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
