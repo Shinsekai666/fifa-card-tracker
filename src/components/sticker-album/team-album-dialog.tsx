@@ -18,6 +18,15 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
   const prev = idx > 0 ? teams[idx - 1] : null;
   const next = idx >= 0 && idx < teams.length - 1 ? teams[idx + 1] : null;
 
+  const extractNum = (number: string, teamCode: string | null) => {
+    if (!teamCode) return number;
+    return number.replace(new RegExp(`^${teamCode}`, "i"), "") || number;
+  };
+  const isBadge = (n: string) => n === "1" || n === "13";
+
+  const badgeStickers = team ? team.stickers.filter((s) => isBadge(extractNum(s.number, s.team_code))) : [];
+  const gridStickers = team ? team.stickers.filter((s) => !isBadge(extractNum(s.number, s.team_code))) : [];
+
   return (
     <Dialog open={!!team} onOpenChange={(o) => !o && onSelect(null)}>
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto p-0 gap-0">
@@ -61,7 +70,22 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
                     )}
                   </p>
                 </div>
-                <p className="text-3xl font-black tabular-nums text-primary md:text-4xl">{team.pct}%</p>
+                <div className="flex items-center gap-3">
+                  {badgeStickers.length > 0 && (
+                    <div className="flex gap-2">
+                      {badgeStickers.map((s) => (
+                        <div key={s.id} className="w-14 md:w-16">
+                          <StickerSlot
+                            sticker={s}
+                            onCycle={() => cycle(s)}
+                            onAdjust={(d) => adjustDoubles(s, d)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-3xl font-black tabular-nums text-primary md:text-4xl">{team.pct}%</p>
+                </div>
               </div>
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
                 <div
@@ -74,7 +98,7 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
             {/* Grille style page d'album */}
             <div className="bg-muted/30 p-4 md:p-6">
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 md:gap-4">
-                {team.stickers.map((s) => (
+                {gridStickers.map((s) => (
                   <StickerSlot
                     key={s.id}
                     sticker={s}
