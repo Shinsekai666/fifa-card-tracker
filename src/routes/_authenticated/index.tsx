@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/")({
   component: HomePage,
 });
 
-type ViewMode = "album" | "list";
+type ViewMode = "album" | "list" | "missing";
 
 function HomePage() {
   return (
