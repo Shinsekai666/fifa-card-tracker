@@ -71,18 +71,39 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-5 md:gap-6">
                   {badgeStickers.length > 0 && (
                     <div className="flex gap-2">
-                      {badgeStickers.map((s) => (
-                        <div key={s.id} className="w-14 md:w-16">
-                          <StickerSlot
-                            sticker={s}
-                            onCycle={() => cycle(s)}
-                            onAdjust={(d) => adjustDoubles(s, d)}
-                          />
-                        </div>
-                      ))}
+                      {badgeStickers.map((s) => {
+                        const owned = s.status !== "missing";
+                        const isDouble = s.status === "double";
+                        const num = extractNum(s.number, s.team_code);
+                        return (
+                          <button
+                            key={s.id}
+                            onClick={() => cycle(s)}
+                            className={[
+                              "relative flex h-12 w-20 shrink-0 items-center gap-2 rounded-lg border-2 px-2 transition active:scale-95 md:h-14 md:w-24",
+                              owned
+                                ? isDouble
+                                  ? "border-accent bg-gradient-to-br from-accent/25 to-accent/5"
+                                  : "border-primary bg-gradient-to-br from-primary/25 to-primary/5"
+                                : "border-dashed border-border bg-muted/40",
+                            ].join(" ")}
+                          >
+                            {s.is_foil && (
+                              <Sparkles className="absolute right-1 top-1 h-3 w-3 text-accent" strokeWidth={2.5} />
+                            )}
+                            <span className="font-mono text-2xl font-black leading-none text-foreground md:text-3xl">
+                              {num}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-left font-mono text-[9px] font-bold uppercase tracking-wider text-foreground/60">
+                              {s.team_code}
+                              {s.name ? <><br />{s.name}</> : null}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                   <p className="text-3xl font-black tabular-nums text-primary md:text-4xl">{team.pct}%</p>
