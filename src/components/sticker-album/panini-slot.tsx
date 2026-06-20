@@ -30,16 +30,8 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
             : "bg-[var(--panini-slot)] hover:brightness-105",
         ].join(" ")}
       >
-        {/* Gros "26" en silhouette (slot vide) */}
-        {!owned && (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 flex items-end justify-end pr-1 font-serif text-[6rem] font-black leading-[0.8] text-white/95 md:text-[7rem]"
-            style={{ letterSpacing: "-0.08em" }}
-          >
-            26
-          </span>
-        )}
+
+
 
         {sticker.is_foil && (
           <Sparkles
