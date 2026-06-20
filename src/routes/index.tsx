@@ -41,6 +41,7 @@ function HomePage() {
 
 function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "album";
     return (localStorage.getItem("panini-view") as ViewMode) || "album";
