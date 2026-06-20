@@ -346,3 +346,19 @@ function DangerZone() {
     </button>
   );
 }
+
+function LogoutButton() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  async function logout() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+  return (
+    <Button variant="ghost" size="sm" onClick={logout} title="Se déconnecter">
+      <LogOut className="h-4 w-4" />
+    </Button>
+  );
+}
