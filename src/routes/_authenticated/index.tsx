@@ -128,11 +128,18 @@ function Home() {
       {/* View toggle */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">
-          {view === "album" ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}` : "Liste complète"}
+          {view === "album"
+            ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}`
+            : view === "missing"
+            ? `${stats.missing} manquant${stats.missing > 1 ? "s" : ""}`
+            : "Liste complète"}
         </h2>
         <div className="inline-flex rounded-lg border border-border bg-card p-1">
           <ViewBtn active={view === "album"} onClick={() => setView("album")} icon={<LayoutGrid className="h-4 w-4" />}>
             Album
+          </ViewBtn>
+          <ViewBtn active={view === "missing"} onClick={() => setView("missing")} icon={<ListChecks className="h-4 w-4" />}>
+            Manquants
           </ViewBtn>
           <ViewBtn active={view === "list"} onClick={() => setView("list")} icon={<List className="h-4 w-4" />}>
             Liste
@@ -147,6 +154,8 @@ function Home() {
         <EmptyState onImport={() => fileRef.current?.click()} />
       ) : view === "album" ? (
         <AlbumView teams={teams} onSelect={setSelectedTeam} />
+      ) : view === "missing" ? (
+        <MissingView teams={teams} onSelectTeam={setSelectedTeam} />
       ) : (
         <ListView stickers={stickers} />
       )}
