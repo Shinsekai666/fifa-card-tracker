@@ -177,6 +177,68 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
   );
 }
 
+function MissingView({
+  teams,
+  onSelectTeam,
+}: {
+  teams: ReturnType<typeof groupByTeam>;
+  onSelectTeam: (code: string) => void;
+}) {
+  const groups = useMemo(
+    () =>
+      teams
+        .map((t) => ({ ...t, missing: t.stickers.filter((s) => s.status === "missing") }))
+        .filter((t) => t.missing.length > 0),
+    [teams],
+  );
+
+  if (groups.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card py-16 text-center">
+        <div className="mb-2 text-4xl">🎉</div>
+        <p className="text-lg font-bold">Aucun sticker manquant !</p>
+        <p className="mt-1 text-sm text-muted-foreground">Ton album est complet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {groups.map((t) => (
+        <Card key={t.code}>
+          <CardContent className="p-4">
+            <button
+              onClick={() => onSelectTeam(t.code)}
+              className="mb-3 flex w-full items-center gap-2 text-left hover:opacity-80"
+            >
+              <span className="text-2xl">{t.flag}</span>
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-bold text-foreground">{t.name}</h3>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{t.code}</p>
+              </div>
+              <Badge variant="outline" className="font-mono">
+                {t.missing.length} / {t.total}
+              </Badge>
+            </button>
+            <div className="flex flex-wrap gap-1.5">
+              {t.missing.map((s) => (
+                <span
+                  key={s.id}
+                  title={s.name ?? ""}
+                  className="inline-flex items-center gap-1 rounded-md border border-dashed border-border bg-muted/40 px-2 py-1 font-mono text-xs font-bold text-foreground"
+                >
+                  {s.number}
+                  {s.is_foil && <Sparkles className="h-3 w-3 text-accent" />}
+                </span>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 function ListView({ stickers }: { stickers: Sticker[] }) {
   const { setStatus, adjustDoubles } = useStickerMutations();
   const [search, setSearch] = useState("");
