@@ -1,93 +1,45 @@
-## Refonte "Mon Classeur Panini FIFA 2026"
+# Plan : Album en dialogue + français partout
 
-Ton album = 48 équipes × 20 stickers + 20 spéciaux (980 au total). Je transforme l'app pour qu'elle colle exactement à cette structure et soit ludique à utiliser.
+## Problème actuel
+- Cliquer sur une équipe en vue Album → 404 (la route `/team/$teamCode` ne se charge pas correctement dans le preview).
+- Quelques textes encore en anglais (404 page, certains labels).
 
-### 1. Schéma BDD enrichi (migration)
+## Ce qui change
 
-Ajout sur la table `stickers` :
-- `team_code` (TEXT) — ex. `CPV`, `FRA`, `SPE` pour spéciaux
-- `team_name` (TEXT) — ex. `Cabo Verde`
-- `team_flag` (TEXT) — emoji drapeau (auto-déduit à l'import depuis le code pays ISO, sinon vide)
-- `team_order` (INT) — ordre d'affichage des équipes (Spéciaux en premier, puis ordre du JSON)
-- `position` (INT) — position du sticker dans l'équipe (1 à 20)
-- `is_special` (BOOL) — true pour la "team" Spéciaux
-- `is_foil` (BOOL) — sticker brillant/holographique
+### 1. Boîte de dialogue équipe (remplace la route)
+- Nouveau composant `TeamAlbumDialog` (shadcn `Dialog`) ouvert depuis `TeamCard` au clic.
+- Plus aucune navigation : suppression du `<Link to="/team/...">` dans `team-card.tsx`, remplacé par un `onClick` qui passe le code équipe au parent.
+- Le fichier de route `src/routes/team.$teamCode.tsx` est supprimé (la route disparaît, plus de 404 possible).
+- État `selectedTeamCode` géré dans `src/routes/index.tsx`.
 
-Anciennes colonnes conservées : `number` (= code unique type `CPV13` ou `FWC1`), `name`, `status`, `doubles_count`.
+### 2. Contenu de la dialogue — style album (image 3)
+- En-tête : drapeau XL + nom équipe + code + barre de progression + `X/20 possédés` + `Y%`.
+- Grille 4 ou 5 colonnes de **cartes-stickers** au style album Panini :
+  - Forme de vignette arrondie avec **gros numéro** centré (ex. `CPV 3`) sur fond doux quand manquant.
+  - Quand possédé : fond coloré équipe / coche, le numéro reste lisible.
+  - Quand double : badge `×N` doré en coin + bordure dorée.
+  - Foil/brillant : bordure dégradée or.
+  - Sous la carte : nom du joueur en petit (ex. `LOGAN COSTA`).
+- **Tap** sur la carte = cycle (manquant → possédé → double).
+- **Boutons +/−** visibles uniquement sur les doubles, en bas de la carte.
+- Boutons bas de dialogue : `Fermer`, `← Équipe précédente`, `Équipe suivante →` (change `selectedTeamCode` sans fermer).
 
-### 2. Import JSON intelligent
+### 3. Tout en français
+- `__root.tsx` page 404 : `404` / `Page introuvable` / `La page demandée n'existe pas.` / `Retour à l'accueil`.
+- Vérifier `errorComponent` / `notFoundComponent` par défaut du router → versions FR.
+- Titres meta : déjà FR sur `/`, OK.
+- Tout libellé restant en EN (`Loading`, etc.) → FR.
 
-L'app détecte ta structure (`special_stickers.items[]` + `teams[].stickers[]` ou équivalent) et remplit tout en un import. Champs reconnus :
-- Racine : `teams`, `special_stickers`, `total_stickers`
-- Équipe : `code`, `name`, `flag`, `country`, `stickers` ou `items`
-- Sticker : `code`/`number`, `name`, `position`, `foil`, `type`
+## Fichiers touchés
+- `src/components/sticker-album/team-card.tsx` — devient un bouton avec `onClick`, plus de `<Link>`.
+- `src/components/sticker-album/team-album-dialog.tsx` — **nouveau**, contient en-tête + grille + StickerSlot redessiné en style album.
+- `src/components/sticker-album/sticker-slot.tsx` — restyle "vignette Panini" (numéro proéminent, badge double, foil).
+- `src/routes/index.tsx` — état dialogue + intégration.
+- `src/routes/team.$teamCode.tsx` — **supprimé**.
+- `src/routeTree.gen.ts` — régénéré auto.
+- `src/routes/__root.tsx` — `notFoundComponent` en français.
+- `src/router.tsx` — `defaultNotFoundComponent` / `defaultErrorComponent` en français si présents.
 
-Re-import = met à jour les noms/structure sans toucher à ton statut/doubles (upsert sur `number`).
-
-Bouton "Importer JSON" dans le header + zone drag-and-drop dans l'état vide.
-
-### 3. Vue Album (par défaut, ludique)
-
-**Écran 1 — Sommaire des équipes** : grille responsive de cartes équipe avec
-- Drapeau + nom + code
-- Anneau de progression circulaire (ex. `12/20`)
-- Mini barre de couleur : 🟢 possédés, 🟡 doubles, ⚪ manquants
-- Badge "✨ Spéciaux" mis en avant si c'est la team spéciaux
-
-**Écran 2 — Page d'une équipe** : grille 4×5 façon page d'album
-- Chaque case = un sticker, taille uniforme, look "pochette"
-- Affiche le code (ex. `CPV 13`) et le nom du joueur
-- Bordure dorée + icône ✨ si `is_foil`
-- État visuel clair :
-  - Manquant : case grisée, contour pointillé
-  - Possédé : case colorée aux couleurs de l'équipe, ✓
-  - Double : case colorée + badge `×2`, `×3` doré
-- **Tap rapide** = cycle des 3 états (manquant → possédé → double → manquant)
-- **Boutons +/–** visibles uniquement quand statut = double, pour ajuster la quantité
-- En-tête de page : drapeau XL, nom, progression, navigation ← équipe précédente / suivante →
-
-### 4. Vue Liste (toggle)
-
-Toggle dans le header (icônes 📖 Album / ☰ Liste) :
-- Recherche globale + filtres (statut, équipe)
-- Cartes compactes comme aujourd'hui mais regroupées par équipe (en-têtes collants)
-- Mêmes interactions tap/+/–
-
-### 5. Stats globales (toujours visibles)
-
-Bandeau en haut : progression %, possédés, manquants, doubles totaux, équipes complètes.
-
-### 6. Export PDF amélioré
-
-- **Manquants** : groupés par équipe, drapeau dans le titre, colonne `Code / Joueur`, équipes complétées masquées
-- **Doubles** : groupés par équipe, colonne quantité, total en bas
-- Pied de page avec date + URL de l'app pour l'imprimer et l'emporter
-
-### 7. Détails ludiques
-
-- Animation discrète quand on coche un sticker (scale + couleur)
-- Confetti léger quand une équipe est complétée à 100%
-- Compteur "Équipes complètes : 3/48" en haut
-
----
-
-### Détails techniques
-
-- **Migration** : `ALTER TABLE stickers ADD COLUMN team_code TEXT, team_name TEXT, team_flag TEXT, team_order INT DEFAULT 0, position INT DEFAULT 0, is_special BOOL DEFAULT false, is_foil BOOL DEFAULT false;` + index sur `(team_order, position)`.
-- **Routes TanStack** :
-  - `/` — sommaire équipes (vue album) OU liste si toggle activé (state local + localStorage)
-  - `/team/$teamCode` — page d'une équipe
-- **Import** : parser dans `src/lib/sticker-import.ts` étendu pour reconnaître `teams[]` + `special_stickers`. Mapping drapeau via table ISO→emoji incluse (Cabo Verde → 🇨🇻, etc.). Upsert sur `number` qui préserve `status` et `doubles_count` existants.
-- **PDF** : regroupement par `team_order`/`team_name`, en-têtes de section dans `jspdf-autotable` via plusieurs `autoTable` consécutifs.
-- **Composants** : nouveau `TeamCard`, `AlbumPage`, `StickerSlot` (vue album), réutilisation du `StickerCard` existant pour la vue liste.
-- **State** : TanStack Query déjà en place, ajout d'un hook `useStickersByTeam()` qui regroupe en mémoire.
-
-### Ce que je ne change pas
-
-- Pas de login (toujours mono-utilisateur partagé)
-- Stack TanStack Start + Lovable Cloud + shadcn déjà OK
-- Le code existant de PDF/import est étendu, pas réécrit de zéro
-
----
-
-Une fois la migration approuvée et la nouvelle UI en place, tu importes ton JSON et tout se range automatiquement. Tu cliques sur "Cabo Verde", tu vois ta page d'album, tap-tap-tap pour cocher ce que tu as collé.
+## Ce qui ne change pas
+- Schéma DB, logique import JSON, export PDF, hooks de mutation.
+- Vue Liste, statistiques, toggle Album/Liste.

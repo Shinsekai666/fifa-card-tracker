@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
+import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,6 +41,7 @@ function HomePage() {
 
 function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "album";
     return (localStorage.getItem("panini-view") as ViewMode) || "album";
@@ -142,10 +144,12 @@ function Home() {
       ) : stickers.length === 0 ? (
         <EmptyState onImport={() => fileRef.current?.click()} />
       ) : view === "album" ? (
-        <AlbumView teams={teams} />
+        <AlbumView teams={teams} onSelect={setSelectedTeam} />
       ) : (
         <ListView stickers={stickers} />
       )}
+
+      <TeamAlbumDialog teams={teams} selectedCode={selectedTeam} onSelect={setSelectedTeam} />
 
       <footer className="mt-12 border-t border-border pt-6 text-center text-xs text-muted-foreground">
         Tes modifications sont sauvegardées automatiquement.
@@ -154,10 +158,10 @@ function Home() {
   );
 }
 
-function AlbumView({ teams }: { teams: ReturnType<typeof groupByTeam> }) {
+function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>; onSelect: (code: string) => void }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {teams.map((t) => <TeamCard key={t.code} group={t} />)}
+      {teams.map((t) => <TeamCard key={t.code} group={t} onClick={() => onSelect(t.code)} />)}
     </div>
   );
 }
