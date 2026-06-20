@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { FileDown, LayoutGrid, List, Loader2, Search, Sparkles, Upload, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileDown, LayoutGrid, List, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import { fetchAllStickers, useStickerMutations } from "@/lib/sticker-hooks";
 import { groupByTeam, STATUS_LABEL, type Sticker, type StickerStatus } from "@/lib/sticker-types";
@@ -111,6 +112,7 @@ function Home() {
           <Button variant="outline" onClick={() => exportDoublesPdf(stickers)} disabled={!stats.doublesTotal}>
             <FileDown className="mr-2 h-4 w-4" /> PDF doubles
           </Button>
+          <LogoutButton />
         </div>
       </header>
 
