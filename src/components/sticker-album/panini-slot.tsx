@@ -26,8 +26,8 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
         className={[
           "relative aspect-[3/4] w-full overflow-hidden rounded-md text-left transition active:scale-95",
           owned
-            ? "bg-[hsl(var(--panini-owned))] text-[hsl(var(--panini-owned-foreground))] shadow-md"
-            : "bg-[hsl(var(--panini-slot))] hover:brightness-105",
+            ? "bg-[var(--panini-owned)] text-[var(--panini-owned-foreground)] shadow-md"
+            : "bg-[var(--panini-slot)] hover:brightness-105",
         ].join(" ")}
       >
         {/* Gros "26" en silhouette (slot vide) */}
@@ -43,7 +43,7 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
 
         {sticker.is_foil && (
           <Sparkles
-            className={`absolute right-1.5 top-1.5 h-3.5 w-3.5 ${owned ? "text-[hsl(var(--panini-owned-foreground))]" : "text-amber-700"}`}
+            className={`absolute right-1.5 top-1.5 h-3.5 w-3.5 ${owned ? "text-[var(--panini-owned-foreground)]" : "text-amber-700"}`}
             strokeWidth={2.5}
           />
         )}
@@ -51,10 +51,10 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
         {/* Contenu vide : CODE + numéro centrés */}
         {!owned && (
           <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
-            <span className="font-sans text-[10px] font-black uppercase tracking-[0.18em] text-[hsl(var(--panini-slot-ink))]">
+            <span className="font-sans text-[10px] font-black uppercase tracking-[0.18em] text-[var(--panini-slot-ink)]">
               {sticker.team_code}
             </span>
-            <span className="font-sans text-3xl font-black leading-none text-[hsl(var(--panini-slot-ink))] md:text-4xl">
+            <span className="font-sans text-3xl font-black leading-none text-[var(--panini-slot-ink)] md:text-4xl">
               {num}
             </span>
           </div>
@@ -74,7 +74,7 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
                 ×{sticker.doubles_count + 1}
               </span>
             ) : (
-              <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[hsl(var(--panini-owned-foreground))] text-[hsl(var(--panini-owned))] shadow">
+              <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--panini-owned-foreground)] text-[var(--panini-owned)] shadow">
                 <Check className="h-3 w-3" strokeWidth={3} />
               </span>
             )}
@@ -85,7 +85,7 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
         {sticker.name && (
           <p
             className={`absolute inset-x-1 bottom-1 truncate text-center text-[9px] font-black uppercase tracking-wide ${
-              owned ? "text-[hsl(var(--panini-owned-foreground))]" : "text-[hsl(var(--panini-slot-ink))]"
+              owned ? "text-[var(--panini-owned-foreground)]" : "text-[var(--panini-slot-ink)]"
             }`}
           >
             {sticker.name}
