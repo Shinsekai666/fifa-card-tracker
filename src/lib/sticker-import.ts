@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
-import { flagFor } from "./flag-utils";
+import { flagFor, CODE_TO_NAME } from "./flag-utils";
 
 interface ParsedSticker {
   number: string;
