@@ -30,14 +30,14 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
 
   return (
     <Dialog open={!!team} onOpenChange={(o) => !o && onSelect(null)}>
-      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto p-0 gap-0">
+      <DialogContent className="max-h-[100dvh] sm:max-h-[92vh] w-screen sm:w-full max-w-none sm:max-w-5xl rounded-none sm:rounded-lg overflow-y-auto p-0 gap-0">
         {team && (
           <>
             <DialogTitle className="sr-only">Équipe {team.name}</DialogTitle>
 
             {/* En-tête style album */}
             <div
-              className={`relative rounded-t-lg border-b-2 p-5 ${
+              className={`relative rounded-t-lg border-b-2 p-3 sm:p-5 ${
                 team.pct === 100
                   ? "border-accent bg-gradient-to-br from-accent/20 to-transparent"
                   : "border-border bg-gradient-to-br from-primary/10 to-transparent"
@@ -50,17 +50,17 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
               >
                 <X className="h-4 w-4" />
               </button>
-              <div className="flex items-center gap-4 pr-8">
-                <div className="text-5xl md:text-6xl">{team.flag || "🏳️"}</div>
-                <div className="min-w-0 flex-1">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 pr-8 sm:gap-4">
+                <div className="text-4xl sm:text-6xl shrink-0">{team.flag || "🏳️"}</div>
+                <div className="min-w-0">
                   <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     {team.code}
                   </p>
-                  <h2 className="flex items-center gap-2 text-2xl font-black text-foreground md:text-3xl">
-                    {team.name}
-                    {team.isSpecial && <Sparkles className="h-5 w-5 text-accent" />}
+                  <h2 className="flex items-center gap-2 truncate text-xl font-black text-foreground sm:text-3xl">
+                    <span className="truncate">{team.name}</span>
+                    {team.isSpecial && <Sparkles className="h-5 w-5 shrink-0 text-accent" />}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
                     <span className="font-bold text-foreground">{team.owned}</span> / {team.total} possédés
                     {team.doubles > 0 && (
                       <>
@@ -71,45 +71,42 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-5 md:gap-6">
-                  {badgeStickers.length > 0 && (
-                    <div className="flex gap-2">
-                      {badgeStickers.map((s) => {
-                        const owned = s.status !== "missing";
-                        const isDouble = s.status === "double";
-                        const num = extractNum(s.number, s.team_code);
-                        return (
-                          <button
-                            key={s.id}
-                            onClick={() => cycle(s)}
-                            className={[
-                              "relative flex h-12 w-20 shrink-0 items-center gap-2 rounded-lg border-2 px-2 transition active:scale-95 md:h-14 md:w-24",
-                              owned
-                                ? isDouble
-                                  ? "border-accent bg-gradient-to-br from-accent/25 to-accent/5"
-                                  : "border-primary bg-gradient-to-br from-primary/25 to-primary/5"
-                                : "border-dashed border-border bg-muted/40",
-                            ].join(" ")}
-                          >
-                            {s.is_foil && (
-                              <Sparkles className="absolute right-1 top-1 h-3 w-3 text-accent" strokeWidth={2.5} />
-                            )}
-                            <span className="font-mono text-2xl font-black leading-none text-foreground md:text-3xl">
-                              {num}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate text-left font-mono text-[9px] font-bold uppercase tracking-wider text-foreground/60">
-                              {s.team_code}
-                              {s.name ? <><br />{s.name}</> : null}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <p className="text-3xl font-black tabular-nums text-primary md:text-4xl">{team.pct}%</p>
-                </div>
+                <p className="shrink-0 text-2xl font-black tabular-nums text-primary sm:text-4xl">{team.pct}%</p>
               </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+              {badgeStickers.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+                  {badgeStickers.map((s) => {
+                    const owned = s.status !== "missing";
+                    const isDouble = s.status === "double";
+                    const num = extractNum(s.number, s.team_code);
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => cycle(s)}
+                        className={[
+                          "relative flex h-12 w-[88px] shrink-0 items-center gap-2 rounded-lg border-2 px-2 transition active:scale-95 sm:h-14 sm:w-24",
+                          owned
+                            ? isDouble
+                              ? "border-accent bg-gradient-to-br from-accent/25 to-accent/5"
+                              : "border-primary bg-gradient-to-br from-primary/25 to-primary/5"
+                            : "border-dashed border-border bg-muted/40",
+                        ].join(" ")}
+                      >
+                        {s.is_foil && (
+                          <Sparkles className="absolute right-1 top-1 h-3 w-3 text-accent" strokeWidth={2.5} />
+                        )}
+                        <span className="font-mono text-2xl font-black leading-none text-foreground sm:text-3xl">
+                          {num}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-left font-mono text-[9px] font-bold uppercase tracking-wider text-foreground/60">
+                          {s.name ?? s.team_code}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted sm:mt-4">
                 <div
                   className={team.pct === 100 ? "h-full bg-accent" : "h-full bg-primary"}
                   style={{ width: `${team.pct}%` }}
