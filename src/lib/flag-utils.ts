@@ -15,7 +15,23 @@ const CODE_TO_FLAG: Record<string, string> = {
   QAT: "🇶🇦", UAE: "🇦🇪", UZB: "🇺🇿", JOR: "🇯🇴",
   MAR: "🇲🇦", SEN: "🇸🇳", TUN: "🇹🇳", EGY: "🇪🇬", ALG: "🇩🇿", CMR: "🇨🇲",
   GHA: "🇬🇭", NGA: "🇳🇬", CIV: "🇨🇮", RSA: "🇿🇦", CPV: "🇨🇻", MLI: "🇲🇱",
-  NZL: "🇳🇿",
+  COD: "🇨🇩", CUW: "🇨🇼",
+  NZL: "🇳🇿", BIH: "🇧🇦",
+};
+
+export const CODE_TO_NAME: Record<string, string> = {
+  FWC: "Spéciaux FIFA", SPE: "Spéciaux",
+  MEX: "Mexico", RSA: "South Africa", KOR: "Korea Republic", CZE: "Czech Republic",
+  CAN: "Canada", BIH: "Bosnia & Herzegovina", QAT: "Qatar", SUI: "Switzerland",
+  BRA: "Brazil", MAR: "Morocco", HAI: "Haiti", SCO: "Scotland", USA: "USA",
+  PAR: "Paraguay", AUS: "Australia", TUR: "Türkiye", GER: "Germany",
+  CUW: "Curaçao", CIV: "Côte d'Ivoire", ECU: "Ecuador", NED: "Netherlands",
+  JPN: "Japan", SWE: "Sweden", TUN: "Tunisia", BEL: "Belgium", EGY: "Egypt",
+  IRN: "Iran", NZL: "New Zealand", ESP: "Spain", CPV: "Cape Verde",
+  KSA: "Saudi Arabia", URU: "Uruguay", FRA: "France", SEN: "Senegal",
+  IRQ: "Iraq", NOR: "Norway", ARG: "Argentina", ALG: "Algeria", AUT: "Austria",
+  JOR: "Jordan", POR: "Portugal", COD: "DR Congo", UZB: "Uzbekistan",
+  COL: "Colombia", ENG: "England", CRO: "Croatia", GHA: "Ghana", PAN: "Panama",
 };
 
 function isoToFlag(iso2: string): string {
