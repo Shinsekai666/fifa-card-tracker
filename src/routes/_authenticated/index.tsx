@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
 import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
+import { GROUP_LETTERS, groupOf } from "@/lib/wc-groups";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -169,10 +170,98 @@ function Home() {
   );
 }
 
+type AlbumSort = "default" | "alpha" | "progress" | "missing";
+type AlbumFilter = "all" | "specials" | "by-group" | `group-${string}`;
+
 function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>; onSelect: (code: string) => void }) {
+  const [sort, setSort] = useState<AlbumSort>("default");
+  const [filter, setFilter] = useState<AlbumFilter>("all");
+
+  const filtered = useMemo(() => {
+    let list = teams.slice();
+    if (filter === "specials") list = list.filter((t) => t.isSpecial);
+    else if (filter.startsWith("group-")) {
+      const letter = filter.replace("group-", "");
+      list = list.filter((t) => groupOf(t.code) === letter);
+    } else if (filter === "all") {
+      // garde tout (spéciaux + équipes)
+    }
+    // tri (les spéciaux restent en tête sauf si on demande un tri explicite)
+    const cmp: Record<AlbumSort, (a: typeof teams[number], b: typeof teams[number]) => number> = {
+      default: (a, b) => (a.isSpecial === b.isSpecial ? a.order - b.order : a.isSpecial ? -1 : 1),
+      alpha: (a, b) => a.name.localeCompare(b.name, "fr"),
+      progress: (a, b) => b.pct - a.pct || a.name.localeCompare(b.name, "fr"),
+      missing: (a, b) => b.missing - a.missing || a.name.localeCompare(b.name, "fr"),
+    };
+    return list.sort(cmp[sort]);
+  }, [teams, filter, sort]);
+
+  const groupedByLetter = useMemo(() => {
+    if (filter !== "by-group") return null;
+    const map = new Map<string, typeof teams>();
+    const specials: typeof teams = [];
+    for (const t of filtered) {
+      if (t.isSpecial) { specials.push(t); continue; }
+      const g = groupOf(t.code) ?? "?";
+      if (!map.has(g)) map.set(g, [] as unknown as typeof teams);
+      (map.get(g) as typeof teams).push(t);
+    }
+    const ordered: { letter: string; teams: typeof teams }[] = [];
+    if (specials.length) ordered.push({ letter: "Spéciaux", teams: specials });
+    for (const l of GROUP_LETTERS) {
+      const g = map.get(l);
+      if (g && g.length) ordered.push({ letter: `Groupe ${l}`, teams: g });
+    }
+    const others = map.get("?");
+    if (others && others.length) ordered.push({ letter: "Autres", teams: others });
+    return ordered;
+  }, [filtered, filter]);
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {teams.map((t) => <TeamCard key={t.code} group={t} onClick={() => onSelect(t.code)} />)}
+    <div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Select value={filter} onValueChange={(v) => setFilter(v as AlbumFilter)}>
+          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les équipes</SelectItem>
+            <SelectItem value="specials">Spéciaux uniquement</SelectItem>
+            <SelectItem value="by-group">Grouper par poule FIFA</SelectItem>
+            {GROUP_LETTERS.map((l) => (
+              <SelectItem key={l} value={`group-${l}`}>Groupe {l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={sort} onValueChange={(v) => setSort(v as AlbumSort)}>
+          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Ordre du cahier</SelectItem>
+            <SelectItem value="alpha">Ordre alphabétique</SelectItem>
+            <SelectItem value="progress">Progression (↓)</SelectItem>
+            <SelectItem value="missing">Manquants (↓)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {groupedByLetter ? (
+        <div className="space-y-6">
+          {groupedByLetter.map((g) => (
+            <section key={g.letter}>
+              <h3 className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                {g.letter}
+              </h3>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {g.teams.map((t) => (
+                  <TeamCard key={t.code} group={t} onClick={() => onSelect(t.code)} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {filtered.map((t) => <TeamCard key={t.code} group={t} onClick={() => onSelect(t.code)} />)}
+        </div>
+      )}
     </div>
   );
 }
