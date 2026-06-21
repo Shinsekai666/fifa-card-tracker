@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { TeamCard } from "@/components/sticker-album/team-card";
 import { TeamAlbumDialog } from "@/components/sticker-album/team-album-dialog";
+import { GROUP_LETTERS, groupOf } from "@/lib/wc-groups";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
