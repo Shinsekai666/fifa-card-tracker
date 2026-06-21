@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
-import { flagFor } from "./flag-utils";
+import { flagFor, CODE_TO_NAME } from "./flag-utils";
 
 interface ParsedSticker {
   number: string;
@@ -84,24 +84,48 @@ function parseTeam(rawTeam: Record<string, unknown>, teamOrder: number, isSpecia
   });
 }
 
-function parseFlatItems(items: unknown[], ctx: ParseContext, isSpecial: boolean) {
-  // Items without team grouping; treat each as standalone or grouped by category
+function parseFlatItems(items: unknown[], ctx: ParseContext, forceSpecial: boolean) {
+  // Détecte le format Panini : code = préfixe lettres + numéro (ex MEX12, FWC3, 00).
+  // Regroupe par préfixe ; FWC et codes purement numériques → Spéciaux.
+  const teamOrderMap = new Map<string, number>();
+  let nextTeamOrder = 1;
+
   items.forEach((rawItem, i) => {
     if (!rawItem || typeof rawItem !== "object") return;
     const s = lower(rawItem as Record<string, unknown>);
-    const number = getStr(s, "code", "number", "numero", "n°", "id") || `X${i + 1}`;
+    const rawCode = getStr(s, "code", "number", "numero", "n°", "id") || `X${i + 1}`;
     const name = getStr(s, "name", "nom", "player") || null;
-    const team_name = getStr(s, "team", "category", "categorie", "country") || (isSpecial ? "Spéciaux" : "Autres");
-    const team_code = getStr(s, "team_code") || (isSpecial ? "SPE" : team_name.slice(0, 3).toUpperCase());
+
+    const m = rawCode.match(/^([A-Za-z]+)(\d+)?$/);
+    const prefix = m && m[1] ? m[1].toUpperCase() : "";
+    const numPart = m && m[2] ? parseInt(m[2], 10) : i + 1;
+
+    const explicitTeam = getStr(s, "team", "category", "categorie", "country");
+    const explicitTeamCode = getStr(s, "team_code");
+
+    const isSpecial = forceSpecial || !prefix || prefix === "FWC";
+    const team_code = explicitTeamCode || (isSpecial ? "SPE" : prefix);
+    const team_name =
+      explicitTeam ||
+      (isSpecial ? "Spéciaux" : CODE_TO_NAME[team_code] || team_code);
+
+    let team_order: number;
+    if (isSpecial) {
+      team_order = 0;
+    } else {
+      if (!teamOrderMap.has(team_code)) teamOrderMap.set(team_code, nextTeamOrder++);
+      team_order = teamOrderMap.get(team_code)!;
+    }
+
     ctx.rows.push({
-      number,
+      number: rawCode,
       name,
       category: team_name,
       team_code,
       team_name,
       team_flag: flagFor(team_code),
-      team_order: isSpecial ? 0 : 999,
-      position: i + 1,
+      team_order,
+      position: numPart,
       is_special: isSpecial,
       is_foil: getBool(s, "foil", "is_foil"),
       sort_order: ctx.globalIdx++,
