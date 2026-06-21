@@ -43,10 +43,10 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
         {/* Contenu vide : CODE + numéro centrés */}
         {!owned && (
           <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
-            <span className="font-sans text-[10px] font-black uppercase tracking-[0.18em] text-[var(--panini-slot-ink)]">
+            <span className="font-sans text-[9px] font-black uppercase tracking-[0.18em] text-[var(--panini-slot-ink)] sm:text-[10px]">
               {sticker.team_code}
             </span>
-            <span className="font-sans text-3xl font-black leading-none text-[var(--panini-slot-ink)] md:text-4xl">
+            <span className="font-sans text-2xl font-black leading-none text-[var(--panini-slot-ink)] sm:text-3xl md:text-4xl">
               {num}
             </span>
           </div>
@@ -56,10 +56,10 @@ export function PaniniSlot({ sticker, onCycle, onAdjust }: Props) {
         {owned && (
           <>
             <div className="absolute inset-0 flex flex-col items-center justify-center px-1">
-              <span className="font-sans text-[10px] font-black uppercase tracking-[0.18em] opacity-70">
+              <span className="font-sans text-[9px] font-black uppercase tracking-[0.18em] opacity-70 sm:text-[10px]">
                 {sticker.team_code}
               </span>
-              <span className="font-sans text-4xl font-black leading-none md:text-5xl">{num}</span>
+              <span className="font-sans text-2xl font-black leading-none sm:text-4xl md:text-5xl">{num}</span>
             </div>
             {isDouble ? (
               <span className="absolute left-1.5 top-1.5 rounded-md bg-accent px-1.5 py-0.5 font-mono text-[10px] font-black text-accent-foreground shadow">
