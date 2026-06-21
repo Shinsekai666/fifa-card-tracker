@@ -23,7 +23,7 @@ export function TeamAlbumDialog({ teams, selectedCode, onSelect }: Props) {
     if (!teamCode) return number;
     return number.replace(new RegExp(`^${teamCode}`, "i"), "") || number;
   };
-  const isBadge = (n: string) => n === "1" || n === "13";
+  const isBadge = (n: string) => n === "13";
 
   const badgeStickers = team ? team.stickers.filter((s) => isBadge(extractNum(s.number, s.team_code))) : [];
   const gridStickers = team ? team.stickers.filter((s) => !isBadge(extractNum(s.number, s.team_code))) : [];
