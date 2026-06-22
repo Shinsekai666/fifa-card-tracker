@@ -212,8 +212,6 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
       const g = map.get(l);
       if (g && g.length) ordered.push({ letter: `Groupe ${l}`, teams: g });
     }
-    const others = map.get("?");
-    if (others && others.length) ordered.push({ letter: "Autres", teams: others });
     return ordered;
   }, [filtered, filter]);
 
