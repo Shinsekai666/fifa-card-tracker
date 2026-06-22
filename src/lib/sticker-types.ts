@@ -42,7 +42,8 @@ export const STATUS_LABEL: Record<StickerStatus, string> = {
 export function groupByTeam(stickers: Sticker[]): TeamGroup[] {
   const map = new Map<string, TeamGroup>();
   for (const s of stickers) {
-    const code = s.team_code ?? "OTHER";
+    if (!s.team_code) continue;
+    const code = s.team_code;
     let g = map.get(code);
     if (!g) {
       g = {
