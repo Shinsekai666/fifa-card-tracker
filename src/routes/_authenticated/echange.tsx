@@ -344,6 +344,8 @@ function MatchBlock({ title, subtitle, items, tone }: { title: string; subtitle:
 function TradeTab({ stickers }: { stickers: Sticker[] }) {
   const { adjustDoubles, setStatus } = useStickerMutations();
   const [input, setInput] = useState("");
+  const [search, setSearch] = useState("");
+
 
   const doubles = useMemo(
     () => stickers.filter((s) => s.status === "double" && s.doubles_count > 0),
