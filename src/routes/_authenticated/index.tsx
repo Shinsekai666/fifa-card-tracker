@@ -556,24 +556,16 @@ function LookupRow({
   );
 }
 
-function EmptyState({ onImport }: { onImport: () => void }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card py-16 text-center">
       <div className="mb-3 text-5xl">📘</div>
       <h3 className="text-xl font-bold">Ton classeur est vide</h3>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        Importe ton fichier JSON officiel (équipes + spéciaux) pour démarrer ton album.
-      </p>
-      <Button className="mt-4" onClick={onImport}>
-        <Upload className="mr-2 h-4 w-4" /> Importer le JSON
-      </Button>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Structure reconnue : <code className="rounded bg-muted px-1.5 py-0.5">{`{ teams: [{ code, name, items: [...] }], special_stickers: { items: [...] } }`}</code>
-      </p>
       <DangerZone />
     </div>
   );
 }
+
 
 function DangerZone() {
   const { refetch } = useQuery({ queryKey: ["stickers"], queryFn: fetchAllStickers });
