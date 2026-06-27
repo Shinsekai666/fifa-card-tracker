@@ -102,40 +102,21 @@ function Home() {
 
 
 
-      {/* View toggle */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <h2 className="text-lg font-bold text-foreground">
-          {view === "album"
-            ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}`
-            : view === "missing"
-            ? `${stats.missing} manquant${stats.missing > 1 ? "s" : ""}`
-            : "Liste complète"}
+          {teams.length} équipe{teams.length > 1 ? "s" : ""}
         </h2>
-        <div className="inline-flex rounded-lg border border-border bg-card p-1">
-          <ViewBtn active={view === "album"} onClick={() => setView("album")} icon={<LayoutGrid className="h-4 w-4" />}>
-            Album
-          </ViewBtn>
-          <ViewBtn active={view === "missing"} onClick={() => setView("missing")} icon={<ListChecks className="h-4 w-4" />}>
-            Manquants
-          </ViewBtn>
-          <ViewBtn active={view === "list"} onClick={() => setView("list")} icon={<List className="h-4 w-4" />}>
-            Liste
-          </ViewBtn>
-        </div>
       </div>
 
       {/* Body */}
       {isLoading ? (
         <Loader />
       ) : stickers.length === 0 ? (
-        <EmptyState onImport={() => fileRef.current?.click()} />
-      ) : view === "album" ? (
-        <AlbumView teams={teams} onSelect={setSelectedTeam} />
-      ) : view === "missing" ? (
-        <MissingView teams={teams} onSelectTeam={setSelectedTeam} />
+        <EmptyState />
       ) : (
-        <ListView stickers={stickers} />
+        <AlbumView teams={teams} onSelect={setSelectedTeam} />
       )}
+
 
       <TeamAlbumDialog teams={teams} selectedCode={selectedTeam} onSelect={setSelectedTeam} />
 
