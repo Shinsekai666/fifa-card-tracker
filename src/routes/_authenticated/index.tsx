@@ -42,18 +42,9 @@ function HomePage() {
 }
 
 function Home() {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [view, setView] = useState<ViewMode>(() => {
-    if (typeof window === "undefined") return "album";
-    return (localStorage.getItem("panini-view") as ViewMode) || "album";
-  });
 
-  useEffect(() => {
-    if (typeof window !== "undefined") localStorage.setItem("panini-view", view);
-  }, [view]);
-
-  const { data: stickers = [], isLoading, refetch } = useQuery({
+  const { data: stickers = [], isLoading } = useQuery({
     queryKey: ["stickers"],
     queryFn: fetchAllStickers,
   });
@@ -70,16 +61,6 @@ function Home() {
     return { total, owned, missing, doublesTotal, completeTeams, pct };
   }, [stickers, teams]);
 
-  async function handleImport(file: File) {
-    const loading = toast.loading("Import en cours…");
-    try {
-      const res = await importStickersFromFile(file);
-      toast.success(`${res.inserted} stickers importés !`, { id: loading });
-      refetch();
-    } catch (e) {
-      toast.error((e as Error).message, { id: loading });
-    }
-  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
@@ -93,20 +74,6 @@ function Home() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,.json,text/csv,application/json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleImport(f);
-              e.target.value = "";
-            }}
-          />
-          <Button variant="outline" onClick={() => fileRef.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Importer JSON
-          </Button>
           <Button asChild>
             <Link to="/echange"><ArrowLeftRight className="mr-2 h-4 w-4" /> Mode échange</Link>
           </Button>
@@ -118,6 +85,7 @@ function Home() {
           </Button>
           <LogoutButton />
         </div>
+
       </header>
 
       {/* Stats */}
@@ -134,40 +102,21 @@ function Home() {
 
 
 
-      {/* View toggle */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <h2 className="text-lg font-bold text-foreground">
-          {view === "album"
-            ? `${teams.length} équipe${teams.length > 1 ? "s" : ""}`
-            : view === "missing"
-            ? `${stats.missing} manquant${stats.missing > 1 ? "s" : ""}`
-            : "Liste complète"}
+          {teams.length} équipe{teams.length > 1 ? "s" : ""}
         </h2>
-        <div className="inline-flex rounded-lg border border-border bg-card p-1">
-          <ViewBtn active={view === "album"} onClick={() => setView("album")} icon={<LayoutGrid className="h-4 w-4" />}>
-            Album
-          </ViewBtn>
-          <ViewBtn active={view === "missing"} onClick={() => setView("missing")} icon={<ListChecks className="h-4 w-4" />}>
-            Manquants
-          </ViewBtn>
-          <ViewBtn active={view === "list"} onClick={() => setView("list")} icon={<List className="h-4 w-4" />}>
-            Liste
-          </ViewBtn>
-        </div>
       </div>
 
       {/* Body */}
       {isLoading ? (
         <Loader />
       ) : stickers.length === 0 ? (
-        <EmptyState onImport={() => fileRef.current?.click()} />
-      ) : view === "album" ? (
-        <AlbumView teams={teams} onSelect={setSelectedTeam} />
-      ) : view === "missing" ? (
-        <MissingView teams={teams} onSelectTeam={setSelectedTeam} />
+        <EmptyState />
       ) : (
-        <ListView stickers={stickers} />
+        <AlbumView teams={teams} onSelect={setSelectedTeam} />
       )}
+
 
       <TeamAlbumDialog teams={teams} selectedCode={selectedTeam} onSelect={setSelectedTeam} />
 
@@ -607,24 +556,16 @@ function LookupRow({
   );
 }
 
-function EmptyState({ onImport }: { onImport: () => void }) {
+function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card py-16 text-center">
       <div className="mb-3 text-5xl">📘</div>
       <h3 className="text-xl font-bold">Ton classeur est vide</h3>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        Importe ton fichier JSON officiel (équipes + spéciaux) pour démarrer ton album.
-      </p>
-      <Button className="mt-4" onClick={onImport}>
-        <Upload className="mr-2 h-4 w-4" /> Importer le JSON
-      </Button>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Structure reconnue : <code className="rounded bg-muted px-1.5 py-0.5">{`{ teams: [{ code, name, items: [...] }], special_stickers: { items: [...] } }`}</code>
-      </p>
       <DangerZone />
     </div>
   );
 }
+
 
 function DangerZone() {
   const { refetch } = useQuery({ queryKey: ["stickers"], queryFn: fetchAllStickers });
