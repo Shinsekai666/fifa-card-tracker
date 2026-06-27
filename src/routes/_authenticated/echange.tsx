@@ -344,6 +344,7 @@ function MatchBlock({ title, subtitle, items, tone }: { title: string; subtitle:
 function TradeTab({ stickers }: { stickers: Sticker[] }) {
   const { adjustDoubles, setStatus } = useStickerMutations();
   const [input, setInput] = useState("");
+  const [doubleInput, setDoubleInput] = useState("");
   const [search, setSearch] = useState("");
 
 
@@ -382,6 +383,28 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
     }
     setInput("");
     if (added) toast.success(`${added} carte${added > 1 ? "s" : ""} ajoutée${added > 1 ? "s" : ""}`);
+    if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
+  }
+
+  function addDoubles() {
+    const codes = parseNumbers(doubleInput);
+    if (codes.length === 0) return;
+    let added = 0;
+    const unknown: string[] = [];
+    for (const code of codes) {
+      const s = byNumber.get(code);
+      if (!s) { unknown.push(code); continue; }
+      if (s.status === "missing") {
+        // d'abord owned puis +1 double
+        setStatus(s, "owned");
+        adjustDoubles({ ...s, status: "owned", doubles_count: 0 }, +1);
+      } else {
+        adjustDoubles(s, +1);
+      }
+      added++;
+    }
+    setDoubleInput("");
+    if (added) toast.success(`${added} double${added > 1 ? "s" : ""} ajouté${added > 1 ? "s" : ""}`);
     if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
   }
 
@@ -426,6 +449,28 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
             />
             <Button onClick={addReceived} disabled={!input.trim()}>
               <Plus className="mr-1 h-4 w-4" /> Valider
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Saisie rapide de nouveaux doubles */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider">J'ai reçu de nouveaux doubles</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tape les codes des doubles reçus (ex&nbsp;: <code className="rounded bg-muted px-1">FRA10, MEX2</code>). Chaque code ajoute&nbsp;+1 à ta pile de doubles.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={doubleInput}
+              onChange={(e) => setDoubleInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === "Enter") addDoubles(); }}
+              placeholder="FRA10"
+              className="font-mono uppercase"
+            />
+            <Button variant="secondary" onClick={addDoubles} disabled={!doubleInput.trim()}>
+              <Plus className="mr-1 h-4 w-4" /> Ajouter en double
             </Button>
           </div>
         </CardContent>
