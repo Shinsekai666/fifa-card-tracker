@@ -84,7 +84,7 @@ function ShareTab({ stickers }: { stickers: Sticker[] }) {
       const { error } = await supabase.from("share_links").insert({
         token,
         kind: "both",
-        payload: { doubles, missing, owner: "Lionel" },
+        payload: { doubles, missing, owner: "Lionel" } as never,
       });
       if (error) throw error;
       const url = `${window.location.origin}/partage/${token}`;
