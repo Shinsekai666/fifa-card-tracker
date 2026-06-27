@@ -406,6 +406,7 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
     setDoubleInput("");
     if (added) toast.success(`${added} double${added > 1 ? "s" : ""} ajouté${added > 1 ? "s" : ""}`);
     if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
+  }
 
   // filtered + grouped doubles
   const filteredDoubles = useMemo(() => {
