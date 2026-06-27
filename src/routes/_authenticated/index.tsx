@@ -129,6 +129,11 @@ function Home() {
         <StatCard label="Équipes" value={`${stats.completeTeams}/${teams.length}`} sub="complètes" />
       </section>
 
+      {/* Recherche carte */}
+      <CardLookup stickers={stickers} />
+
+
+
       {/* View toggle */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">
