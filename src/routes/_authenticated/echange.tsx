@@ -344,6 +344,8 @@ function MatchBlock({ title, subtitle, items, tone }: { title: string; subtitle:
 function TradeTab({ stickers }: { stickers: Sticker[] }) {
   const { adjustDoubles, setStatus } = useStickerMutations();
   const [input, setInput] = useState("");
+  const [search, setSearch] = useState("");
+
 
   const doubles = useMemo(
     () => stickers.filter((s) => s.status === "double" && s.doubles_count > 0),
@@ -383,16 +385,25 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
     if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
   }
 
-  // group doubles by team for readability
+  // filtered + grouped doubles
+  const filteredDoubles = useMemo(() => {
+    const q = search.trim().toUpperCase();
+    if (!q) return doubles;
+    return doubles.filter(
+      (s) => s.number.toUpperCase().includes(q) || (s.name ?? "").toUpperCase().includes(q),
+    );
+  }, [doubles, search]);
+
   const groups = useMemo(() => {
     const m = new Map<string, Sticker[]>();
-    for (const s of doubles) {
+    for (const s of filteredDoubles) {
       const k = s.team_code ?? "—";
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(s);
     }
     return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [doubles]);
+  }, [filteredDoubles]);
+
 
   return (
     <div className="space-y-4">
@@ -430,11 +441,23 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
             Clique sur une carte quand tu la donnes : elle disparaît de tes doubles.
           </p>
 
+          <div className="mt-3">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher (ex. FRA, MEX10, nom du joueur…)"
+              className="font-mono"
+            />
+          </div>
+
           {doubles.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">Aucun double à donner.</p>
+          ) : filteredDoubles.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">Aucun résultat pour « {search} ».</p>
           ) : (
             <div className="mt-4 space-y-3 max-h-[65vh] overflow-y-auto pr-1">
               {groups.map(([code, list]) => (
+
                 <div key={code}>
                   <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{code}</p>
                   <div className="flex flex-wrap gap-1.5">
