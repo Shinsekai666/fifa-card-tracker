@@ -1,30 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import QRCode from "qrcode";
-import { ArrowLeftRight, ArrowLeft, Check, Copy, Loader2, Minus, Plus, QrCode, Share2 } from "lucide-react";
+import { ArrowLeft, Loader2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-
 
 import { fetchAllStickers, useStickerMutations } from "@/lib/sticker-hooks";
 import type { Sticker } from "@/lib/sticker-types";
-import {
-  buildDoublesList,
-  buildMissingList,
-  compareWithOther,
-  parseNumbers,
-  randomToken,
-  toShareText,
-  type TradeItem,
-} from "@/lib/trade";
+import { parseNumbers } from "@/lib/trade";
 
 export const Route = createFileRoute("/_authenticated/echange")({
   head: () => ({ meta: [{ title: "Mode échange · Panini FIFA 2026" }] }),
@@ -51,22 +38,13 @@ function TradePage() {
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : (
-          <Tabs defaultValue="share">
-            <TabsList className="mb-6 grid w-full grid-cols-3">
-              <TabsTrigger value="share"><Share2 className="mr-1 h-3.5 w-3.5" /> Mes listes</TabsTrigger>
-              <TabsTrigger value="compare"><ArrowLeftRight className="mr-1 h-3.5 w-3.5" /> Comparer</TabsTrigger>
-              <TabsTrigger value="trade"><Check className="mr-1 h-3.5 w-3.5" /> Échanger</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="share"><ShareTab stickers={stickers} /></TabsContent>
-            <TabsContent value="compare"><CompareTab stickers={stickers} /></TabsContent>
-            <TabsContent value="trade"><TradeTab stickers={stickers} /></TabsContent>
-          </Tabs>
+          <TradeTab stickers={stickers} />
         )}
       </div>
     </div>
   );
 }
+
 
 /* --------------------------------------- Onglet 1 : Mes listes --------------------------------------- */
 
