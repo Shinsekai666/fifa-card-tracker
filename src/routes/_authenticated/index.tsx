@@ -42,18 +42,9 @@ function HomePage() {
 }
 
 function Home() {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [view, setView] = useState<ViewMode>(() => {
-    if (typeof window === "undefined") return "album";
-    return (localStorage.getItem("panini-view") as ViewMode) || "album";
-  });
 
-  useEffect(() => {
-    if (typeof window !== "undefined") localStorage.setItem("panini-view", view);
-  }, [view]);
-
-  const { data: stickers = [], isLoading, refetch } = useQuery({
+  const { data: stickers = [], isLoading } = useQuery({
     queryKey: ["stickers"],
     queryFn: fetchAllStickers,
   });
@@ -70,16 +61,6 @@ function Home() {
     return { total, owned, missing, doublesTotal, completeTeams, pct };
   }, [stickers, teams]);
 
-  async function handleImport(file: File) {
-    const loading = toast.loading("Import en cours…");
-    try {
-      const res = await importStickersFromFile(file);
-      toast.success(`${res.inserted} stickers importés !`, { id: loading });
-      refetch();
-    } catch (e) {
-      toast.error((e as Error).message, { id: loading });
-    }
-  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
