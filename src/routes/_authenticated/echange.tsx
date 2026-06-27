@@ -237,6 +237,5 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
   );
 }
 
-// unused-import guards
-void Check;
+
 
