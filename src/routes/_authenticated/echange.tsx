@@ -386,6 +386,27 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
     if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
   }
 
+  function addDoubles() {
+    const codes = parseNumbers(doubleInput);
+    if (codes.length === 0) return;
+    let added = 0;
+    const unknown: string[] = [];
+    for (const code of codes) {
+      const s = byNumber.get(code);
+      if (!s) { unknown.push(code); continue; }
+      if (s.status === "missing") {
+        // d'abord owned puis +1 double
+        setStatus(s, "owned");
+        adjustDoubles({ ...s, status: "owned", doubles_count: 0 }, +1);
+      } else {
+        adjustDoubles(s, +1);
+      }
+      added++;
+    }
+    setDoubleInput("");
+    if (added) toast.success(`${added} double${added > 1 ? "s" : ""} ajouté${added > 1 ? "s" : ""}`);
+    if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
+
   // filtered + grouped doubles
   const filteredDoubles = useMemo(() => {
     const q = search.trim().toUpperCase();
