@@ -441,11 +441,23 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
             Clique sur une carte quand tu la donnes : elle disparaît de tes doubles.
           </p>
 
+          <div className="mt-3">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher (ex. FRA, MEX10, nom du joueur…)"
+              className="font-mono"
+            />
+          </div>
+
           {doubles.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">Aucun double à donner.</p>
+          ) : filteredDoubles.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">Aucun résultat pour « {search} ».</p>
           ) : (
             <div className="mt-4 space-y-3 max-h-[65vh] overflow-y-auto pr-1">
               {groups.map(([code, list]) => (
+
                 <div key={code}>
                   <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{code}</p>
                   <div className="flex flex-wrap gap-1.5">
