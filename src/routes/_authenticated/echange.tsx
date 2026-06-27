@@ -342,174 +342,125 @@ function MatchBlock({ title, subtitle, items, tone }: { title: string; subtitle:
 /* --------------------------------------- Onglet 3 : Échanger --------------------------------------- */
 
 function TradeTab({ stickers }: { stickers: Sticker[] }) {
-  const { cycle, adjustDoubles } = useStickerMutations();
-  const [given, setGiven] = useState<Set<string>>(new Set()); // ids of doubles I'm giving away
-  const [received, setReceived] = useState<Set<string>>(new Set()); // ids of missing I'm receiving
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { adjustDoubles, setStatus } = useStickerMutations();
+  const [input, setInput] = useState("");
 
   const doubles = useMemo(
     () => stickers.filter((s) => s.status === "double" && s.doubles_count > 0),
     [stickers],
   );
-  const missing = useMemo(() => stickers.filter((s) => s.status === "missing"), [stickers]);
 
-  function toggle(set: Set<string>, setter: (s: Set<string>) => void, id: string) {
-    const n = new Set(set);
-    if (n.has(id)) n.delete(id);
-    else n.add(id);
-    setter(n);
+  const byNumber = useMemo(() => {
+    const m = new Map<string, Sticker>();
+    for (const s of stickers) m.set(s.number.toUpperCase(), s);
+    return m;
+  }, [stickers]);
+
+  function giveOne(s: Sticker) {
+    adjustDoubles(s, -1);
+    const reste = s.doubles_count - 1;
+    toast.success(reste > 0 ? `${s.number} donné (reste ×${reste})` : `${s.number} donné`);
   }
 
-  async function commit() {
-    const giveStickers = doubles.filter((s) => given.has(s.id));
-    const recvStickers = missing.filter((s) => received.has(s.id));
-    // Donnés : -1 (passe à owned si compteur tombe à 0)
-    for (const s of giveStickers) adjustDoubles(s, -1);
-    // Reçus : missing → owned
-    for (const s of recvStickers) cycle(s);
-    toast.success(`Échange enregistré · -${giveStickers.length} / +${recvStickers.length}`);
-    setGiven(new Set());
-    setReceived(new Set());
-    setConfirmOpen(false);
+  function addReceived() {
+    const codes = parseNumbers(input);
+    if (codes.length === 0) return;
+    let added = 0;
+    const unknown: string[] = [];
+    for (const code of codes) {
+      const s = byNumber.get(code);
+      if (!s) { unknown.push(code); continue; }
+      if (s.status === "missing") {
+        setStatus(s, "owned");
+      } else {
+        // déjà possédé → devient un double (ou +1)
+        adjustDoubles(s, +1);
+      }
+      added++;
+    }
+    setInput("");
+    if (added) toast.success(`${added} carte${added > 1 ? "s" : ""} ajoutée${added > 1 ? "s" : ""}`);
+    if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
   }
 
-  const totalActions = given.size + received.size;
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="flex flex-wrap items-center justify-between gap-2 p-4">
-          <p className="text-sm">
-            Coche ce que tu <span className="font-bold text-accent">donnes</span> et ce que tu{" "}
-            <span className="font-bold text-primary">reçois</span>, puis valide pour mettre à jour l'album.
-          </p>
-          <Button disabled={totalActions === 0} onClick={() => setConfirmOpen(true)}>
-            Valider l'échange ({totalActions})
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <TradeColumn
-          title="Je donne (mes doubles)"
-          tone="accent"
-          empty="Aucun double à proposer."
-          items={doubles}
-          selected={given}
-          onToggle={(id) => toggle(given, setGiven, id)}
-          extra={(s) => (
-            <span className="font-mono text-[10px] text-muted-foreground">×{s.doubles_count}</span>
-          )}
-        />
-        <TradeColumn
-          title="Je reçois (mes manquants)"
-          tone="primary"
-          empty="Plus aucun manquant !"
-          items={missing}
-          selected={received}
-          onToggle={(id) => toggle(received, setReceived, id)}
-        />
-      </div>
-
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="max-w-md">
-          <DialogTitle>Confirmer l'échange</DialogTitle>
-          <div className="space-y-3 text-sm">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-accent">Donnés ({given.size})</p>
-              <p className="font-mono text-xs text-muted-foreground">
-                {doubles.filter((s) => given.has(s.id)).map((s) => s.number).join(", ") || "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-primary">Reçus ({received.size})</p>
-              <p className="font-mono text-xs text-muted-foreground">
-                {missing.filter((s) => received.has(s.id)).map((s) => s.number).join(", ") || "—"}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Annuler</Button>
-            <Button onClick={commit}>Confirmer</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-function TradeColumn({
-  title,
-  items,
-  selected,
-  onToggle,
-  empty,
-  tone,
-  extra,
-}: {
-  title: string;
-  items: Sticker[];
-  selected: Set<string>;
-  onToggle: (id: string) => void;
-  empty: string;
-  tone: "primary" | "accent";
-  extra?: (s: Sticker) => React.ReactNode;
-}) {
-  // group by team for readability
+  // group doubles by team for readability
   const groups = useMemo(() => {
     const m = new Map<string, Sticker[]>();
-    for (const s of items) {
+    for (const s of doubles) {
       const k = s.team_code ?? "—";
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(s);
     }
     return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [items]);
+  }, [doubles]);
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">
-          {title} <span className="text-muted-foreground">({items.length})</span>
-        </h4>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{empty}</p>
-        ) : (
-          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-            {groups.map(([code, list]) => (
-              <div key={code}>
-                <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{code}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {list.map((s) => {
-                    const sel = selected.has(s.id);
-                    return (
+    <div className="space-y-4">
+      {/* Saisie rapide des cartes reçues */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider">J'ai reçu de nouvelles cartes</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tape un ou plusieurs codes (ex&nbsp;: <code className="rounded bg-muted px-1">FRA10</code>,{" "}
+            <code className="rounded bg-muted px-1">MEX2, BRA7</code>) puis valide. Si tu l'avais déjà, elle passe en double.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === "Enter") addReceived(); }}
+              placeholder="FRA10"
+              className="font-mono uppercase"
+              autoFocus
+            />
+            <Button onClick={addReceived} disabled={!input.trim()}>
+              <Plus className="mr-1 h-4 w-4" /> Valider
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Doubles à donner — un clic = donné */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider">
+            Mes doubles à donner <span className="text-muted-foreground">({doubles.length})</span>
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Clique sur une carte quand tu la donnes : elle disparaît de tes doubles.
+          </p>
+
+          {doubles.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">Aucun double à donner.</p>
+          ) : (
+            <div className="mt-4 space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+              {groups.map(([code, list]) => (
+                <div key={code}>
+                  <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{code}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {list.map((s) => (
                       <button
                         key={s.id}
-                        onClick={() => onToggle(s.id)}
-                        title={s.name ?? ""}
-                        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-mono text-xs font-bold transition active:scale-95 ${
-                          sel
-                            ? tone === "primary"
-                              ? "border border-primary bg-primary text-primary-foreground"
-                              : "border border-accent bg-accent text-accent-foreground"
-                            : "border border-border bg-muted/40 hover:bg-muted"
-                        }`}
+                        onClick={() => giveOne(s)}
+                        title={`${s.name ?? ""} — clic pour donner`}
+                        className="inline-flex items-center gap-1 rounded-md border border-accent/40 bg-accent/15 px-2 py-1 font-mono text-xs font-bold transition hover:bg-accent hover:text-accent-foreground active:scale-95"
                       >
-                        {sel && <Check className="h-3 w-3" />}
+                        <Minus className="h-3 w-3" />
                         {s.number}
-                        {extra && <span className="ml-0.5 opacity-70">{extra(s)}</span>}
+                        {s.doubles_count > 1 && <span className="ml-0.5 opacity-70">×{s.doubles_count}</span>}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
 // unused-import guards
-void Minus; void Plus;
+void Check;
+
