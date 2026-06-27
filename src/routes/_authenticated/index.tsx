@@ -493,6 +493,120 @@ function Loader() {
   return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 }
 
+function CardLookup({ stickers }: { stickers: Sticker[] }) {
+  const [q, setQ] = useState("");
+  const { setStatus, adjustDoubles } = useStickerMutations();
+
+  const matches = useMemo(() => {
+    const needle = q.trim().toUpperCase();
+    if (!needle) return [] as Sticker[];
+    return stickers
+      .filter((s) => {
+        const n = s.number.toUpperCase();
+        const name = (s.name ?? "").toUpperCase();
+        return n === needle || n.includes(needle) || name.includes(needle);
+      })
+      .sort((a, b) => {
+        const an = a.number.toUpperCase();
+        const bn = b.number.toUpperCase();
+        if (an === needle) return -1;
+        if (bn === needle) return 1;
+        return an.localeCompare(bn, "fr", { numeric: true });
+      })
+      .slice(0, 12);
+  }, [stickers, q]);
+
+  const exact = matches.find((s) => s.number.toUpperCase() === q.trim().toUpperCase());
+
+  return (
+    <section className="mb-6">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value.toUpperCase())}
+                placeholder="Recherche une carte (ex. CIV5, FRA10, nom du joueur…)"
+                className="pl-9 font-mono uppercase"
+              />
+            </div>
+            {q && (
+              <p className="text-xs text-muted-foreground">
+                {matches.length === 0
+                  ? "Aucun résultat."
+                  : `${matches.length} résultat${matches.length > 1 ? "s" : ""}`}
+              </p>
+            )}
+          </div>
+
+          {q && matches.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {(exact ? [exact, ...matches.filter((m) => m.id !== exact.id)] : matches).map((s) => (
+                <LookupRow key={s.id} sticker={s} setStatus={setStatus} adjustDoubles={adjustDoubles} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+function LookupRow({
+  sticker,
+  setStatus,
+  adjustDoubles,
+}: {
+  sticker: Sticker;
+  setStatus: (s: Sticker, st: StickerStatus) => void;
+  adjustDoubles: (s: Sticker, d: number) => void;
+}) {
+  const s = sticker;
+  const tone =
+    s.status === "missing"
+      ? "border-destructive/40 bg-destructive/10"
+      : s.status === "double"
+      ? "border-accent/40 bg-accent/10"
+      : "border-primary/40 bg-primary/10";
+  const dot =
+    s.status === "missing" ? "bg-destructive" : s.status === "double" ? "bg-accent" : "bg-primary";
+
+  return (
+    <div className={`flex flex-wrap items-center gap-2 rounded-lg border p-2 ${tone}`}>
+      <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
+      <span className="text-xl">{s.team_flag}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-sm font-bold">{s.number}</span>
+          {s.is_foil && <Sparkles className="h-3 w-3 text-accent" />}
+          <Badge variant="outline" className="text-[10px]">{STATUS_LABEL[s.status]}{s.status === "double" ? ` ×${s.doubles_count}` : ""}</Badge>
+        </div>
+        <p className="truncate text-xs text-muted-foreground">
+          {s.team_name ?? "—"}{s.name ? ` · ${s.name}` : ""}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {s.status !== "owned" && (
+          <Button size="sm" variant="outline" onClick={() => setStatus(s, "owned")}>
+            Je l'ai
+          </Button>
+        )}
+        {s.status !== "missing" && (
+          <Button size="sm" variant="outline" onClick={() => setStatus(s, "missing")}>
+            Pas eu
+          </Button>
+        )}
+        <Button size="sm" onClick={() => adjustDoubles(s, +1)}>+1 double</Button>
+        {s.status === "double" && s.doubles_count > 0 && (
+          <Button size="sm" variant="outline" onClick={() => adjustDoubles(s, -1)}>−1</Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EmptyState({ onImport }: { onImport: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-card py-16 text-center">
