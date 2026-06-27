@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      share_links: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          kind: string
+          payload: Json
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind: string
+          payload: Json
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          token?: string
+        }
+        Relationships: []
+      }
       stickers: {
         Row: {
           category: string | null
