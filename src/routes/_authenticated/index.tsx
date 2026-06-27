@@ -176,6 +176,7 @@ type AlbumFilter = "all" | "specials" | "by-group" | `group-${string}`;
 function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>; onSelect: (code: string) => void }) {
   const [sort, setSort] = useState<AlbumSort>("default");
   const [filter, setFilter] = useState<AlbumFilter>("all");
+  const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     let list = teams.slice();
@@ -186,6 +187,12 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
     } else if (filter === "all") {
       // garde tout (spéciaux + équipes)
     }
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((t) =>
+        t.name.toLowerCase().includes(q) || t.code.toLowerCase().includes(q),
+      );
+    }
     // tri (les spéciaux restent en tête sauf si on demande un tri explicite)
     const cmp: Record<AlbumSort, (a: typeof teams[number], b: typeof teams[number]) => number> = {
       default: (a, b) => (a.isSpecial === b.isSpecial ? a.order - b.order : a.isSpecial ? -1 : 1),
@@ -194,7 +201,7 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
       missing: (a, b) => b.missing - a.missing || a.name.localeCompare(b.name, "fr"),
     };
     return list.sort(cmp[sort]);
-  }, [teams, filter, sort]);
+  }, [teams, filter, sort, search]);
 
   const groupedByLetter = useMemo(() => {
     if (filter !== "by-group") return null;
@@ -218,6 +225,15 @@ function AlbumView({ teams, onSelect }: { teams: ReturnType<typeof groupByTeam>;
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
+        <div className="relative min-w-0 flex-1 sm:flex-none sm:w-64">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher une équipe…"
+            className="pl-9"
+          />
+        </div>
         <Select value={filter} onValueChange={(v) => setFilter(v as AlbumFilter)}>
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
