@@ -385,16 +385,25 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
     if (unknown.length) toast.error(`Inconnu : ${unknown.join(", ")}`);
   }
 
-  // group doubles by team for readability
+  // filtered + grouped doubles
+  const filteredDoubles = useMemo(() => {
+    const q = search.trim().toUpperCase();
+    if (!q) return doubles;
+    return doubles.filter(
+      (s) => s.number.toUpperCase().includes(q) || (s.name ?? "").toUpperCase().includes(q),
+    );
+  }, [doubles, search]);
+
   const groups = useMemo(() => {
     const m = new Map<string, Sticker[]>();
-    for (const s of doubles) {
+    for (const s of filteredDoubles) {
       const k = s.team_code ?? "—";
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(s);
     }
     return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [doubles]);
+  }, [filteredDoubles]);
+
 
   return (
     <div className="space-y-4">
