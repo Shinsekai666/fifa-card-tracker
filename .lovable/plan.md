@@ -1,21 +1,55 @@
 ## Problème
-Sur mobile (360px), le dialogue d'équipe déborde horizontalement : le header tient en `flex` une seule ligne avec drapeau + titre + 2 badges (1, 13) + %, ce qui pousse le contenu hors écran. La grille intérieure (`grid-cols-2`) avec le panneau "WE ARE" coupe aussi les stickers.
 
-## Changements
+Tu ne peux pas imprimer tes listes. Quand tu rencontres quelqu'un pour échanger, il te faut un moyen rapide sur ton téléphone pour :
+1. Voir tes doubles disponibles
+2. Comparer avec ce que l'autre personne a/cherche
+3. Cocher au fur et à mesure ce que vous échangez
 
-### `src/components/sticker-album/team-album-dialog.tsx`
-- `DialogContent` : ajouter `w-[100vw] sm:w-full max-w-[100vw] sm:max-w-5xl rounded-none sm:rounded-lg max-h-[100dvh] sm:max-h-[92vh]` pour plein écran mobile.
-- Header : passer en deux rangées sur mobile.
-  - Ligne 1 : drapeau + (code + nom + compteurs) + % à droite. Utiliser `grid grid-cols-[auto_minmax(0,1fr)_auto]` avec `min-w-0` et `truncate` sur le titre. Réduire drapeau à `text-4xl sm:text-6xl`, titre `text-xl sm:text-3xl`, % `text-2xl sm:text-4xl`.
-  - Ligne 2 (badges 1 + 13) : sous le header, `flex gap-2` centré, badges en `h-12 w-[72px]`, masquer le label `team_code` sur mobile (garder juste numéro + nom tronqué), `text-[8px]`.
-- Padding header : `p-3 sm:p-5`.
+## Solution proposée : Mode Échange
 
-### `src/components/sticker-album/team-album-spread.tsx`
-- Padding intérieur : `p-2 sm:p-6`.
-- Grille : `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4` (déjà ok mais réduire le gap mobile).
-- Panneau "WE ARE" : sur mobile, `col-span-2` plein largeur en haut comme bandeau compact (réduire padding + texte `text-lg`), `sm:col-span-1` retour normal.
+Un nouveau bouton **"Mode Échange"** dans l'app, optimisé mobile, avec 3 outils :
 
-### `src/components/sticker-album/panini-slot.tsx`
-- Réduire tailles typo numéro sur mobile : `text-2xl sm:text-4xl md:text-5xl` au lieu de `text-4xl md:text-5xl`, pour que les stickers respirent en colonne 2.
+### 1. Vue "Mes Doubles" (partage rapide)
+- Liste compacte de tous tes doubles groupés par équipe
+- Bouton **"Partager"** qui génère :
+  - Un **texte WhatsApp/SMS** prêt à coller : `Doubles: MEX2, MEX5, FRA8...`
+  - Un **lien public** (lecture seule, sans login) que tu envoies à l'autre personne → il voit ta liste sur son tél
+  - Un **QR code** à scanner en face à face
+- Idem pour la liste "Manquants"
 
-Résultat : le dialogue occupe toute la largeur de l'écran mobile, le header s'empile proprement, et la grille de stickers tient en 2 colonnes sans rogner.
+### 2. Vue "Comparer" (face à face)
+- Tu colles la liste de doubles de l'autre (texte ou lien) 
+- L'app calcule automatiquement :
+  - **Ce qu'il a et qu'il te manque** → ce que tu veux
+  - **Ce que tu as en double et qu'il lui manque** → ce qu'il veut
+- Affichage côte à côte avec cases à cocher
+
+### 3. Mode "Session d'échange" (pendant le troc)
+- Tu sélectionnes les stickers échangés (donnés / reçus)
+- À la validation : 
+  - Les **reçus** passent en "possédé" (ou double si tu l'avais déjà)
+  - Les **donnés** : `doubles_count -1`, repasse en "possédé" si plus de double
+- Historique des sessions d'échange (date + nombre)
+
+## Détails techniques
+
+- Nouvelle route publique `/partage/:token` (lecture seule, pas de login) qui lit un snapshot stocké en base
+- Nouvelle table `share_links` (token, type 'doubles'|'missing', created_at, expires_at)
+- Nouvelle table `trade_sessions` (id, date, given jsonb, received jsonb) pour l'historique
+- Composant `TradeMode` avec 3 onglets (Mes listes / Comparer / Échanger)
+- Bouton d'accès depuis le header principal
+- Génération QR via `qrcode` package
+- Le parseur de texte accepte plusieurs formats : `MEX2, MEX5` ou `2, 5, 8` (dans contexte équipe) ou liste collée brute
+
+## Ce que ça remplace
+- Plus besoin d'imprimer
+- Plus besoin de barrer manuellement
+- Mise à jour automatique du compteur de doubles après chaque échange
+- Tu gardes une trace de tous tes échanges
+
+---
+
+**Questions avant de coder :**
+1. Le **lien de partage public** te convient ? (l'autre personne n'a pas besoin de compte, voit juste ta liste figée)
+2. L'**historique des échanges** est utile ou on s'en passe pour rester simple ?
+3. Pour le **mode comparaison** : tu préfères coller du texte, scanner un QR, ou ouvrir un lien ?
