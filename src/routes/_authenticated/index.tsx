@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileDown, LayoutGrid, List, ListChecks, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
+import { ArrowLeftRight, FileDown, LayoutGrid, List, ListChecks, Loader2, LogOut, Search, Sparkles, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -106,6 +106,9 @@ function Home() {
           />
           <Button variant="outline" onClick={() => fileRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" /> Importer JSON
+          </Button>
+          <Button asChild>
+            <Link to="/echange"><ArrowLeftRight className="mr-2 h-4 w-4" /> Mode échange</Link>
           </Button>
           <Button variant="outline" onClick={() => exportMissingPdf(stickers)} disabled={!stats.missing}>
             <FileDown className="mr-2 h-4 w-4" /> PDF manquants

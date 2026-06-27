@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as PartageTokenRouteImport } from './routes/partage.$token'
+import { Route as AuthenticatedEchangeRouteImport } from './routes/_authenticated/echange'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -27,32 +29,55 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const PartageTokenRoute = PartageTokenRouteImport.update({
+  id: '/partage/$token',
+  path: '/partage/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedEchangeRoute = AuthenticatedEchangeRouteImport.update({
+  id: '/echange',
+  path: '/echange',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/echange': typeof AuthenticatedEchangeRoute
+  '/partage/$token': typeof PartageTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/echange': typeof AuthenticatedEchangeRoute
+  '/partage/$token': typeof PartageTokenRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/echange': typeof AuthenticatedEchangeRoute
+  '/partage/$token': typeof PartageTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth'
+  fullPaths: '/' | '/auth' | '/echange' | '/partage/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/'
-  id: '__root__' | '/_authenticated' | '/auth' | '/_authenticated/'
+  to: '/auth' | '/echange' | '/partage/$token' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/echange'
+    | '/partage/$token'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PartageTokenRoute: typeof PartageTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,14 +103,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/partage/$token': {
+      id: '/partage/$token'
+      path: '/partage/$token'
+      fullPath: '/partage/$token'
+      preLoaderRoute: typeof PartageTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/echange': {
+      id: '/_authenticated/echange'
+      path: '/echange'
+      fullPath: '/echange'
+      preLoaderRoute: typeof AuthenticatedEchangeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedEchangeRoute: typeof AuthenticatedEchangeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedEchangeRoute: AuthenticatedEchangeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -95,6 +136,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PartageTokenRoute: PartageTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
