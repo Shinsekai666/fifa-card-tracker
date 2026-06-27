@@ -93,20 +93,6 @@ function Home() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,.json,text/csv,application/json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleImport(f);
-              e.target.value = "";
-            }}
-          />
-          <Button variant="outline" onClick={() => fileRef.current?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Importer JSON
-          </Button>
           <Button asChild>
             <Link to="/echange"><ArrowLeftRight className="mr-2 h-4 w-4" /> Mode échange</Link>
           </Button>
@@ -118,6 +104,7 @@ function Home() {
           </Button>
           <LogoutButton />
         </div>
+
       </header>
 
       {/* Stats */}
