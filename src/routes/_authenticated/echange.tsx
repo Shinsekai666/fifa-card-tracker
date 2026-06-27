@@ -454,6 +454,28 @@ function TradeTab({ stickers }: { stickers: Sticker[] }) {
         </CardContent>
       </Card>
 
+      {/* Saisie rapide de nouveaux doubles */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider">J'ai reçu de nouveaux doubles</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tape les codes des doubles reçus (ex&nbsp;: <code className="rounded bg-muted px-1">FRA10, MEX2</code>). Chaque code ajoute&nbsp;+1 à ta pile de doubles.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Input
+              value={doubleInput}
+              onChange={(e) => setDoubleInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === "Enter") addDoubles(); }}
+              placeholder="FRA10"
+              className="font-mono uppercase"
+            />
+            <Button variant="secondary" onClick={addDoubles} disabled={!doubleInput.trim()}>
+              <Plus className="mr-1 h-4 w-4" /> Ajouter en double
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Doubles à donner — un clic = donné */}
       <Card>
         <CardContent className="p-5">
